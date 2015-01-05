@@ -38,23 +38,32 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 	def format_completion( self, function ):
 		params = ''
 
+		if function[ 'params' ] == None or function[ 'params' ] == '':
+			trigger 	= '{name}()'.format( name = function[ 'name' ] )
+			contents	= trigger
+
+			return ( trigger, contents )
+
 		for index, param in enumerate( function[ 'params'].split( ',' ) ):
 			if ( index > 0 ):
 				params += ', '
 
-			params += '${{{0}:{1}}}'.format( index + 1, param.strip() )
+			params += '${{{tab_index}:{text_output}}}'.format( tab_index = index + 1, text_output = param.strip() ) # literal { / } must be surrounded by { / } in order to escape properly
 
-		return ( '{0}'.format( function[ 'name' ] ), '{0}( {1} )${{0}}'.format( function[ 'name' ], params ) )
+		trigger 	= '{name}( {params} )'.format( name = function[ 'name' ], params = function[ 'params' ] )
+		contents	= '{name}( {params} )${{0}}'.format( name = function[ 'name' ], params = params ) # ending {0} is a literal value used for Sublime snippets
+
+		return ( trigger, contents )
 
 	def get_functions( self, root_path, mv_file ):
 		mvfunctions 		= []
 		mvincludes			= []
-		mv_file				= '{0}{1}'.format( root_path, mv_file )
+		mv_file				= os.path.join( os.path.abspath( root_path ), mv_file )
 		regex_mvinclude 	= re.compile( "^<MvINCLUDE FILE = \"(.*\.mv)\">$" )
-		regex_mvfunction	= re.compile( "^<MvFUNCTION NAME = \"([a-zA-Z0-9_]+)\"(?:\\s+PARAMETERS = \"([^\"]*)\")" )
+		regex_mvfunction	= re.compile( "^<MvFUNCTION NAME = \"([a-zA-Z0-9_]+)\"(?:\\s+PARAMETERS = \"([^\"]*)\")?" )
 
 		if not os.path.isfile( mv_file ):
-			print( "File not found {0}".format( mv_file ) )
+			print( "File not found {mv_file}".format( mv_file = mv_file ) )
 			return []
 
 		with open( mv_file, 'r' ) as f:
@@ -62,7 +71,7 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 				result_mvfunction = regex_mvfunction.search( line )
 
 				if result_mvfunction:
-					mvfunctions.append( { 'name' : result_mvfunction.group( 1 ), 'params' : result_mvfunction.group( 2 ) } )
+					mvfunctions.append( { 'name' : result_mvfunction.group( 1 ), 'params' : result_mvfunction.group( 2 ).strip() if result_mvfunction.group( 2 ) else None } )
 				else:
 					result_mvinclude = regex_mvinclude.search( line )
 
@@ -87,47 +96,43 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 
 		if result_feature:
 			if len( result_feature.groups() ):
-				return 'features/{0}/{0}.mv'.format( result_feature.group( 1 ) )
+				return 'features/{feature}/{feature}.mv'.format( feature = result_feature.group( 1 ) )
 
-			return 'features/{0}/{0}_{1}.mv'.format( result_feature.group( 1 ), result_feature.group( 2 ) )
+			return 'features/{feature}/{feature}_{file}.mv'.format( feature = result_feature.group( 1 ), file = result_feature.group( 2 ) )
 		else:
 			result_file = regex_file.search( key )
 
 			if result_file:
-				return '{0}.mv'.format( result_file.group( 1 ) )
+				return '{file}.mv'.format( file = result_file.group( 1 ) )
 
-		print( 'Failed to lookup MvDO path {0}'.format( key ) )
+		print( 'Failed to lookup MvDO path {key}'.format( key = key ) )
 
 		return None
 
 	def quick_lookup( self, key ):
 		defaults = {}
 
-		defaults[ 'module_admin' ]								= 'admin.mv'
-		defaults[ 'filename_admin' ]							= 'admin.mv'
+		defaults[ 'module_admin' ]					= 'admin.mv'
+		defaults[ 'filename_admin' ]				= 'admin.mv'
 
-		defaults[ 'module_json' ]								= 'json.mv'
-		defaults[ 'filename_json' ]								= 'json.mv'
+		defaults[ 'module_json' ]					= 'json.mv'
+		defaults[ 'filename_json' ]					= 'json.mv'
 
-		defaults[ 'library_db' ]								= 'lib/db.mv'
-		defaults[ 'library_filename_db' ]						= 'lib/db.mv'
-		defaults[ 'module_library_db' ]							= 'lib/db.mv'
+		defaults[ 'library_db' ]					= 'lib/db.mv'
+		defaults[ 'library_filename_db' ]			= 'lib/db.mv'
+		defaults[ 'module_library_db' ]				= 'lib/db.mv'
 
-		defaults[ 'library_dbapi' ]								= 'lib/dbapi.mv'
-		defaults[ 'library_filename_dbapi' ]					= 'lib/dbapi.mv'
-		defaults[ 'module_library_dbapi' ]						= 'lib/dbapi.mv'
+		defaults[ 'library_dbapi' ]					= 'lib/dbapi.mv'
+		defaults[ 'library_filename_dbapi' ]		= 'lib/dbapi.mv'
+		defaults[ 'module_library_dbapi' ]			= 'lib/dbapi.mv'
 
-		defaults[ 'library_native_dbapi' ]						= 'lib/dbapi_mysql.mv'
-		defaults[ 'library_filename_native_dbapi' ]				= 'lib/dbapi_mysql.mv'
-		defaults[ 'module_library_native_dbapi' ]				= 'lib/dbapi_mysql.mv'
+		defaults[ 'library_native_dbapi' ]			= 'lib/dbapi_mysql.mv'
+		defaults[ 'library_filename_native_dbapi' ]	= 'lib/dbapi_mysql.mv'
+		defaults[ 'module_library_native_dbapi' ]	= 'lib/dbapi_mysql.mv'
 
-		defaults[ 'library_crypto' ]							= 'lib/crypto.mv'
-		defaults[ 'library_filename_crypto' ]					= 'lib/crypto.mv'
-		defaults[ 'module_library_crypto' ]						= 'lib/crypto.mv'
-
-		defaults[ 'library_utilities' ]							= 'lib/util.mv'
-		defaults[ 'library_filename_utilities' ]				= 'lib/util.mv'
-		defaults[ 'module_library_utilities' ]					= 'lib/util.mv'
+		defaults[ 'library_utilities' ]				= 'lib/util.mv'
+		defaults[ 'library_filename_utilities' ]	= 'lib/util.mv'
+		defaults[ 'module_library_utilities' ]		= 'lib/util.mv'
 
 		if key in defaults:
 			return defaults[ key ]
