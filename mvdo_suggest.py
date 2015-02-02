@@ -13,7 +13,7 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		line		= view.substr( view.line( locations[ 0 ] ) )
 		regex_mvdo	= re.compile( "\\[\\s*g\\.([^\\]]+)\\s*\\]\\." )
 		result_mvdo	= regex_mvdo.search( line )
-		root_path	= sublime.load_settings( 'mvdo_suggest.sublime-settings' ).get( "path" )
+		root_path	= sublime.load_settings( 'mvdo_suggest.sublime-settings' ).get( 'path' )
 
 		if not result_mvdo:
 			return []
@@ -63,7 +63,7 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		regex_mvfunction	= re.compile( "^<MvFUNCTION NAME = \"([a-zA-Z0-9_]+)\"(?:\\s+PARAMETERS = \"([^\"]*)\")?" )
 
 		if not os.path.isfile( mv_file ):
-			print( "File not found {mv_file}".format( mv_file = mv_file ) )
+			print( 'MvDOSuggest: File not found {mv_file}'.format( mv_file = mv_file ) )
 			return []
 
 		with open( mv_file, 'r' ) as f:
@@ -95,7 +95,7 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		result_feature	= regex_feature.search( key )
 
 		if result_feature:
-			if len( result_feature.groups() ):
+			if len( result_feature.groups() ) == 1:
 				return 'features/{feature}/{feature}.mv'.format( feature = result_feature.group( 1 ) )
 
 			return 'features/{feature}/{feature}_{file}.mv'.format( feature = result_feature.group( 1 ), file = result_feature.group( 2 ) )
@@ -105,7 +105,7 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 			if result_file:
 				return '{file}.mv'.format( file = result_file.group( 1 ) )
 
-		print( 'Failed to lookup MvDO path {key}'.format( key = key ) )
+		print( 'MvDOSuggest: Failed to lookup MvDO path {key}'.format( key = key ) )
 
 		return None
 
