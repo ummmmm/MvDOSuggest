@@ -90,7 +90,7 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		if quick:
 			return quick
 
-		regex_feature 	= re.compile( "^(?:module_)feature_(?:filename_)?([a-z]+)(?:_([a-z]+))?$" )
+		regex_feature 	= re.compile( "^(?:module_)?feature_(?:filename_)?([a-z]+)(?:_([a-z]+))?$" )
 		regex_file		= re.compile( "^(?:module|filename)_([a-z]+)$" )
 		result_feature	= regex_feature.search( key )
 
