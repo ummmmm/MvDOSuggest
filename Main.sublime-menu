@@ -19,6 +19,11 @@
 								"command": "open_file",
 								"args": {"file": "${packages}/MvDOSuggest/mvdo_suggest.sublime-settings"},
 								"caption": "Settings – Default"
+							},
+							{
+								"command": "open_file",
+								"args": {"file": "${packages}/User/mvdo_suggest.sublime-settings"},
+								"caption": "Settings – User"
 							}
 						]
 					}
