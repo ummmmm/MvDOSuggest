@@ -90,20 +90,20 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		if quick:
 			return quick
 
-		regex_feature 	= re.compile( "^(?:module_)?feature_(?:filename_)?([a-z]+)(?:_([a-z]+))?$" )
-		regex_file		= re.compile( "^(?:module|filename)_([a-z]+)$" )
+		regex_feature 	= re.compile( "^(?:module_)?feature_(?:filename_)?(?P<feature>[a-z]+)(?:_(?P<file>[a-z]+))?$" )
+		regex_file		= re.compile( "^(?:module|filename)_(?P<file>[a-z]+)$" )
 		result_feature	= regex_feature.search( key )
 
 		if result_feature:
-			if len( result_feature.groups() ) == 1:
-				return 'features/{feature}/{feature}.mv'.format( feature = result_feature.group( 1 ) )
+			if result_feature.group( 'feature' ) and result_feature.group( 'file' ):
+				return 'features/{feature}/{feature}_{file}.mv'.format( feature = result_feature.group( 'feature' ), file = result_feature.group( 'file' ) )
 
-			return 'features/{feature}/{feature}_{file}.mv'.format( feature = result_feature.group( 1 ), file = result_feature.group( 2 ) )
+			return 'features/{feature}/{feature}.mv'.format( feature = result_feature.group( 'feature' ) )
 		else:
 			result_file = regex_file.search( key )
 
 			if result_file:
-				return '{file}.mv'.format( file = result_file.group( 1 ) )
+				return '{file}.mv'.format( file = result_file.group( 'file' ) )
 
 		print( 'MvDOSuggest: Failed to lookup MvDO path {key}'.format( key = key ) )
 
