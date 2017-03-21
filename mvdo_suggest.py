@@ -134,6 +134,10 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		defaults[ 'library_filename_utilities' ]	= 'lib/util.mv'
 		defaults[ 'module_library_utilities' ]		= 'lib/util.mv'
 
+		defaults[ 'library_crypto ']				= 'lib/crypto.mv'
+		defaults[ 'library_filename_crypto' ]		= 'lib/crypto.mv'
+		defaults[ 'module_library_crypto' ]			= 'lib/crypto.mv'
+
 		if key in defaults:
 			return defaults[ key ]
 
