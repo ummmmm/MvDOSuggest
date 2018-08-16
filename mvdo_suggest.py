@@ -1,19 +1,26 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 import re
 import os.path
 
+
 class MvDOSuggestCommand( sublime_plugin.EventListener ):
 	def on_query_completions( self, view, prefix, locations ):
-		if ( len( locations ) > 1 ): # do not allow multiple locations (selection points)
+		if ( len( locations ) > 1 ):  # do not allow multiple locations (selection points)
 			return []
-		elif not view.file_name().endswith( '.mv' ): # only add completions for *.mv files
+		elif not view.file_name().endswith( '.mv' ):  # only add completions for *.mv files
 			return []
 
 		completions = []
 		line		= view.substr( view.line( locations[ 0 ] ) )
 		regex_mvdo	= re.compile( "\\[\\s*g\\.([^\\]]+)\\s*\\]\\." )
 		result_mvdo	= regex_mvdo.search( line )
-		root_path	= sublime.load_settings( 'mvdo_suggest.sublime-settings' ).get( 'path' )
+		settings	= sublime.load_settings( 'mvdo_suggest.sublime-settings' )
+
+		if settings.get( 'default_to_project_path', False ) and len( view.window().folders() ) == 1:
+			root_path	= view.window().folders()[ 0 ]
+		else:
+			root_path	= settings.get( 'path' )
 
 		if not result_mvdo:
 			return []
@@ -21,13 +28,13 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		span_start, span_stop 		= result_mvdo.span()
 		location_row, location_col	= view.rowcol( locations[ 0 ] )
 
-		if span_stop + 1 != location_col: # ensures we only add completions if we are located at the start of an MvDO method
-			if not re.search( '^[a-zA-Z0-9_]+$', line[ span_stop : location_col ] ): # look between the cursor pos, back to the MvDO to see if a method has been partially finished
+		if span_stop + 1 != location_col:  # ensures we only add completions if we are located at the start of an MvDO method
+			if not re.search( '^[a-zA-Z0-9_]+$', line[ span_stop : location_col ] ):  # look between the cursor pos, back to the MvDO to see if a method has been partially finished
 				return []
 
 		mv_file = self.lookup( result_mvdo.group( 1 ) )
 
-		if mv_file is None: # failed to correlate the MvDO path
+		if mv_file is None:  # failed to correlate the MvDO path
 			return []
 
 		for function in self.get_functions( root_path, mv_file ):
@@ -38,7 +45,7 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 	def format_completion( self, function ):
 		params = ''
 
-		if function[ 'params' ] == None or function[ 'params' ] == '':
+		if function[ 'params' ] is None or function[ 'params' ] == '':
 			trigger 	= '{name}()'.format( name = function[ 'name' ] )
 			contents	= trigger
 
@@ -48,10 +55,10 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 			if ( index > 0 ):
 				params += ', '
 
-			params += '${{{tab_index}:{text_output}}}'.format( tab_index = index + 1, text_output = param.strip() ) # literal { / } must be surrounded by { / } in order to escape properly
+			params += '${{{tab_index}:{text_output}}}'.format( tab_index = index + 1, text_output = param.strip() )  # literal { / } must be surrounded by { / } in order to escape properly
 
 		trigger 	= '{name}( {params} )'.format( name = function[ 'name' ], params = function[ 'params' ] )
-		contents	= '{name}( {params} )${{0}}'.format( name = function[ 'name' ], params = params ) # ending {0} is a literal value used for Sublime snippets
+		contents	= '{name}( {params} )${{0}}'.format( name = function[ 'name' ], params = params )  # ending {0} is a literal value used for Sublime snippets
 
 		return ( trigger, contents )
 

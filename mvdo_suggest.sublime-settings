@@ -1,4 +1,5 @@
 {
-    "path" : "path_to_root_mv_files"
+	"default_to_project_path": false,
+    "path": "path_to_root_mv_files"
 }
 
