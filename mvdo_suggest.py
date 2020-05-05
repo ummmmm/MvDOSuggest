@@ -66,24 +66,24 @@ class MvDOSuggestCommand( sublime_plugin.EventListener ):
 		mvfunctions 		= []
 		mvincludes			= []
 		mv_file				= os.path.join( os.path.abspath( root_path ), mv_file )
-		regex_mvinclude 	= re.compile( "^<MvINCLUDE FILE = \"(.*\.mv)\">$" )
-		regex_mvfunction	= re.compile( "^<MvFUNCTION NAME = \"([a-zA-Z0-9_]+)\"(?:\\s+PARAMETERS = \"([^\"]*)\")?" )
+		regex_mvinclude 	= re.compile( b"^<MvINCLUDE FILE = \"(.*\.mv)\">$" )
+		regex_mvfunction	= re.compile( b"^<MvFUNCTION NAME = \"([a-zA-Z0-9_]+)\"(?:\\s+PARAMETERS = \"([^\"]*)\")?" )
 
 		if not os.path.isfile( mv_file ):
 			print( 'MvDOSuggest: File not found {mv_file}'.format( mv_file = mv_file ) )
 			return []
 
-		with open( mv_file, 'r' ) as f:
+		with open( mv_file, 'rb' ) as f:
 			for line in f:
 				result_mvfunction = regex_mvfunction.search( line )
 
 				if result_mvfunction:
-					mvfunctions.append( { 'name' : result_mvfunction.group( 1 ), 'params' : result_mvfunction.group( 2 ).strip() if result_mvfunction.group( 2 ) else None } )
+					mvfunctions.append( { 'name' : result_mvfunction.group( 1 ).decode( 'utf-8' ), 'params' : result_mvfunction.group( 2 ).decode( 'utf-8' ).strip() if result_mvfunction.group( 2 ) else None } )
 				else:
 					result_mvinclude = regex_mvinclude.search( line )
 
 					if result_mvinclude:
-						mvincludes.append( result_mvinclude.group( 1 ) )
+						mvincludes.append( result_mvinclude.group( 1 ).decode( 'utf-8' ) )
 
 		for mvinclude in mvincludes:
 			mvfunctions.extend( self.get_functions( root_path, mvinclude ) )
